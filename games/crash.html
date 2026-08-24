@@ -1,0 +1,174 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🚀 Crash — Cassino Inova</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.crash-chart{width:min(500px,95vw);height:280px;background:#0d1117;border-radius:16px;border:2px solid var(--border);margin:0 auto 20px;position:relative;overflow:hidden}
+.chart-line{position:absolute;bottom:0;left:0;width:100%;height:100%}
+.multiplier{position:absolute;top:16px;right:20px;font-family:'Cinzel',serif;font-size:2.8rem;font-weight:900;color:var(--gold);text-shadow:0 0 20px rgba(255,213,79,.4)}
+.rocket-emoji{position:absolute;font-size:2rem;transition:none}
+.crash-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel',serif;font-size:3rem;font-weight:900;color:var(--red);display:none;text-shadow:0 0 30px rgba(229,57,53,.5)}
+.cashout-btn{padding:14px 40px;border-radius:14px;border:2px solid var(--green);background:linear-gradient(135deg,var(--green),#66bb6a);font-family:'Cinzel',serif;font-size:1.1rem;font-weight:900;color:#000;cursor:pointer;display:none;margin-top:12px}
+.history-row{display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.hist-chip{padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:700;font-family:'Poppins'}
+.hist-win{background:rgba(76,175,80,.15);color:var(--green)}
+.hist-loss{background:rgba(229,57,53,.15);color:var(--red)}
+</style></head><body>
+
+<header class="game-header">
+  <a class="logo" onclick="goHome()">← 🐯 Cassino Inova</a>
+  <div class="right"><div class="balance-pill" id="balancePill">—</div></div>
+</header>
+
+<div class="game-area" style="max-width:600px;">
+  <div class="bet-row">
+    <button class="bet-btn" onclick="adjustBet(-1)">−</button>
+    <span class="bet-display" id="betDisplay">R$ 10</span>
+    <button class="bet-btn" onclick="adjustBet(1)">+</button>
+  </div>
+
+  <div style="text-align:center;margin-bottom:12px;">
+    <label style="font-size:.78rem;opacity:.5;">Auto-saque em:</label>
+    <input type="number" id="autoCashout" value="2.00" step="0.1" min="1.1" style="background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--gold);font-family:'Cinzel';font-size:.9rem;width:80px;text-align:center;margin-left:8px;">x
+  </div>
+
+  <div class="crash-chart">
+    <canvas id="chartCanvas"></canvas>
+    <div class="multiplier" id="multiplier">1.00x</div>
+    <div class="rocket-emoji" id="rocket">🚀</div>
+    <div class="crash-overlay" id="crashOverlay">💥 CRASHED!</div>
+  </div>
+
+  <button class="action-btn" id="startBtn" onclick="startCrash()">Apostar 🚀</button>
+  <button class="cashout-btn" id="cashoutBtn" onclick="cashOut()">Saque!</button>
+
+  <div class="history-row" id="historyRow"></div>
+  <div class="result-banner" id="resultBanner"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+let balance=getBalance(),bet=10,multiplier=1,crashed=false,inGame=false,gameId=0;
+const betLevels=[5,10,25,50,100];
+function updateBal(){setBalance(balance);document.getElementById('balancePill').textContent=fmt(balance)}
+function adjustBet(d){const i=betLevels.indexOf(bet);bet=betLevels[Math.max(0,Math.min(betLevels.length-1,i+d))];document.getElementById('betDisplay').textContent=fmt(bet)}
+
+async function startCrash(){
+  if(inGame)return;if(balance<bet){showToast('Saldo insuficiente!','error');return}
+  balance-=bet;updateBal();
+  inGame=true;crashed=false;multiplier=1;
+  gameId++;
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('cashoutBtn').style.display='inline-block';
+  document.getElementById('crashOverlay').style.display='none';
+  document.getElementById('resultBanner').className='result-banner';
+
+  const crashPoint=Math.max(1.01,Math.pow(Math.random(),2)*30+1);
+  const autoCashout=parseFloat(document.getElementById('autoCashout').value)||0;
+  let cashedOut=false;
+
+  const canvas=document.getElementById('chartCanvas');
+  const ctx=canvas.getContext('2d');
+  const points=[];
+
+  const interval=setInterval(()=>{
+    if(!inGame||crashed){clearInterval(interval);return}
+    multiplier+=0.01+multiplier*0.003;
+    document.getElementById('multiplier').textContent=multiplier.toFixed(2)+'x';
+    document.querySelector('.multiplier').style.color=multiplier>autoCashout?'var(--green)':'var(--gold)';
+
+    points.push(multiplier);
+    drawChart(ctx,points);
+
+    const rocket=document.getElementById('rocket');
+    rocket.style.left=`calc(${Math.min(points.length/100*90,85)}% - 10px)`;
+    rocket.style.bottom=`${Math.min(multiplier/crashPoint*70+5,75)}%`;
+    rocket.style.transform=`rotate(${-Math.atan2(multiplier*.02,.5)}rad)`;
+
+    beep(400+multiplier*50,.03,'sine',.02);
+
+    if(autoCashout>0&&multiplier>=autoCashout&&!cashedOut&&multiplier<crashPoint){
+      cashedOut=true;doCashout(autoCashout);
+    }
+
+    if(multiplier>=crashPoint){
+      crashed=true;inGame=false;
+      clearInterval(interval);
+      document.getElementById('crashOverlay').style.display='block';
+      document.getElementById('rocket').textContent='💥';
+      playLose();
+      addHistory(crashPoint,true);
+      if(!cashedOut){
+        const banner=document.getElementById('resultBanner');
+        banner.className='result-banner result-lose';
+        banner.textContent=`💥 Crashou em ${crashPoint.toFixed(2)}x — Perdeu ${fmt(bet)}`;
+      }
+      setTimeout(resetGame,2500);
+    }
+  },40);
+}
+
+function doCashout(mult){
+  const winnings=Math.floor(bet*mult);
+  balance+=winnings;setBalance(balance);
+  cashedMult=mult;
+  playWin(mult>5);
+  addHistory(mult,false,winnings);
+  const banner=document.getElementById('resultBanner');
+  banner.className='result-banner result-win';
+  banner.textContent=`✅ Sacou em ${mult.toFixed(2)}x — Ganhou ${fmt(winnings)}!`;
+}
+
+let cashedMult;
+function cashOut(){
+  if(cashedMult||crashed||!inGame)return;
+  inGame=false;
+  doCashout(multiplier);
+  setTimeout(()=>{if(crashed===false)resetGame()},1500);
+}
+
+function resetGame(){
+  inGame=false;crashed=false;multiplier=1;cashedMult=null;
+  document.getElementById('startBtn').style.display='inline-block';
+  document.getElementById('cashoutBtn').style.display='none';
+  document.getElementById('multiplier').textContent='1.00x';
+  document.querySelector('.multiplier').style.color='var(--gold)';
+  document.getElementById('crashOverlay').style.display='none';
+  document.getElementById('rocket').textContent='🚀';
+  document.getElementById('rocket').style.left='10%';
+  document.getElementById('rocket').style.bottom='5%';
+  document.getElementById('resultBanner').className='result-banner';
+  const ctx=document.getElementById('chartCanvas').getContext('2d');
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+}
+
+function drawChart(ctx,points){
+  const w=ctx.canvas.width,h=ctx.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  if(points.length<2)return;
+  ctx.beginPath();ctx.moveTo(0,h);
+  const maxM=Math.max(...points,2);
+  points.forEach((p,i)=>{
+    const x=i/(points.length-1)*w;
+    const y=h-(p/maxM)*(h-40)-20;
+    ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle='#ffd54f';ctx.lineWidth=3;ctx.stroke();
+  ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();
+  ctx.fillStyle='rgba(255,213,79,.05)';ctx.fill();
+}
+
+function addHistory(mult,isCrash,won){
+  const row=document.getElementById('historyRow');
+  const chip=document.createElement('span');
+  chip.className='hist-chip '+(isCrash?'hist-loss':'hist-win');
+  chip.textContent=isCrash?`${mult.toFixed(2)}x`:won?`+${fmt(won)} (${mult.toFixed(2)}x)`:`${mult.toFixed(2)}x`;
+  row.prepend(chip);
+  if(row.children.length>8)row.lastChild.remove();
+}
+
+const canvas=document.getElementById('chartCanvas');
+canvas.width=canvas.parentElement.clientWidth;canvas.height=canvas.parentElement.clientHeight;
+updateBal();
+</script></body></html>

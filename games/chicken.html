@@ -1,0 +1,149 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🐔 Chicken Cross — Cassino Inova</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.game-track{width:min(500px,95vw);margin:0 auto;background:linear-gradient(180deg,#1a1a2e,#0a0a12);border-radius:16px;padding:20px;border:2px solid var(--border);position:relative;overflow:hidden}
+.lanes{display:flex;flex-direction:column;gap:6px}
+.lane{height:44px;background:rgba(255,255,255,.03);border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;font-size:.75rem;opacity:.4}
+.chicken{position:absolute;left:10px;font-size:1.8rem;transition:left .5s ease;z-index:2;bottom:4px}
+.car{position:absolute;right:-60px;font-size:1.5rem;transition:right 0s;z-index:1;top:50%;transform:translateY(-50%)}
+.step-info{text-align:center;margin:14px 0;font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold)}
+.progress-bar-wrap{height:10px;background:rgba(255,255,255,.06);border-radius:5px;margin-bottom:14px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:5px;transition:width .3s;width:0%}
+</style></head><body>
+
+<header class="game-header">
+  <a class="logo" onclick="goHome()">← 🐯 Cassino Inova</a>
+  <div class="right"><div class="balance-pill" id="balancePill">—</div></div>
+</header>
+
+<div class="game-area" style="max-width:600px;">
+  <div class="bet-row">
+    <button class="bet-btn" onclick="adjustBet(-1)">−</button>
+    <span class="bet-display" id="betDisplay">R$ 10</span>
+    <button class="bet-btn" onclick="adjustBet(1)">+</button>
+  </div>
+
+  <div class="game-track">
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="lanes" id="lanesContainer">
+      <div style="position:relative;height:100%;min-height:300px;">
+        <div class="chicken" id="chicken">🐔</div>
+        <div class="lane" style="position:absolute;top:0;left:0;right:0;">Faixa 1 — 1.2x</div>
+        <div class="lane" style="position:absolute;top:50px;left:0;right:0;">Faixa 2 — 1.5x</div>
+        <div class="lane" style="position:absolute;top:100px;left:0;right:0;">Faixa 3 — 1.9x</div>
+        <div class="lane" style="position:absolute;top:150px;left:0;right:0;">Faixa 4 — 2.4x</div>
+        <div class="lane" style="position:absolute;top:200px;left:0;right:0;">Faixa 5 — 3.2x</div>
+        <div class="lane" style="position:absolute;top:250px;left:0;right:0;">🏁 Chegada — 5.0x</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-info">Multiplicador atual: <span id="currentMult">1.00x</span> | Próximo: <span id="nextMult" style="opacity:.6;"></span></div>
+
+  <br><div style="text-align:center;">
+    <button class="action-btn" id="startBtn" onclick="startCross()">Começar 🐔</button>
+    <button class="action-btn" id="advanceBtn" onclick="advance()" style="display:none;background:linear-gradient(135deg,var(--green),#66bb6a);border-color:var(--green);color:#000;">Avançar ➡️</button>
+    <button class="action-btn" id="cashoutBtn" onclick="doCashout()" style="display:none;background:linear-gradient(135deg,var(--red),#ef5350);border-color:var(--red);color:#fff;">Saque 💰</button>
+  </div>
+  <div class="result-banner" id="resultBanner"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+let balance=getBalance(),bet=10,currentLane=-1,multipliers=[1.2,1.5,1.9,2.4,3.2,5],playing=false;
+const betLevels=[5,10,25,50,100];
+function updateBal(){setBalance(balance);document.getElementById('balancePill').textContent=fmt(balance)}
+function adjustBet(d){const i=betLevels.indexOf(bet);bet=betLevels[Math.max(0,Math.min(betLevels.length-1,i+d))];document.getElementById('betDisplay').textContent=fmt(bet)}
+
+function startCross(){
+  if(playing)return;if(balance<bet){showToast('Saldo insuficiente!','error');return}
+  balance-=bet;setBalance(balance);
+  playing=true;currentLane=-1;
+  document.getElementById('chicken').style.left='10px';
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('advanceBtn').style.display='inline-block';
+  document.getElementById('resultBanner').className='result-banner';
+  updateMult();
+}
+
+function advance(){
+  if(!playing)return;
+  const crashChance=currentLane<0?.15:currentLane*.08;
+  if(Math.random()<crashChance){endGame(false);return}
+
+  currentLane++;
+  document.getElementById('chicken').style.left=`calc(${currentLane/(multipliers.length-1)*85}% + 10px)`;
+  beep(currentLane*150+400,.1,'triangle',.07);
+  updateMult();
+
+  if(currentLane===multipliers.length-1){endGame(true)}
+}
+
+function updateMult(){
+  const mult=currentLane>=0?multipliers[currentLane]:1;
+  document.getElementById('currentMult').textContent=mult.toFixed(2)+'x';
+  const next=currentLane+1<multipliers.length?multipliers[currentLane+1]:null;
+  document.getElementById('nextMult').textContent=next?next.toFixed(1)+'x':'MAX!';
+  document.getElementById('progressBar').style.width=((currentLane+1)/multipliers.length*100)+'%';
+
+  if(currentLane>=0){
+    document.getElementById('advanceBtn').style.display='inline-block';
+    document.getElementById('cashoutBtn').style.display='inline-block';
+    if(currentLane===multipliers.length-1){
+      document.getElementById('advanceBtn').style.display='none';
+    }
+  }
+}
+
+function doCashout(){
+  if(!playing||currentLane<0)return;
+  playing=false;
+  const mult=multipliers[currentLane];
+  const winnings=Math.floor(bet*mult);
+  balance+=winnings;setBalance(balance);
+  playWin(mult>2);
+  const banner=document.getElementById('resultBanner');
+  banner.className='result-banner result-win';
+  banner.textContent=`✅ Sacou ${fmt(winnings)} em ${mult}x!`;
+  resetGame();
+}
+
+function endGame(won){
+  playing=false;
+  const banner=document.getElementById('resultBanner');
+  if(!won){
+    playLose();
+    banner.className='banner result-lose result-banner';
+    banner.textContent=`💥 A galinha foi atingida! Perdeu ${fmt(bet)}`;
+    document.getElementById('chicken').textContent='💀';
+  }else{
+    const mult=multipliers[currentLane];
+    const winnings=Math.floor(bet*mult);
+    balance+=winnings;setBalance(balance);
+    playWin(true);
+    banner.className='result-banner result-win';
+    banner.textContent={`🎉 CHEGOU! Ganhou ${fmt(winnings)} (${mult}x)!`};
+  }
+  resetGame();
+}
+
+function resetGame(){
+  setTimeout(()=>{
+    playing=false;currentLane=-1;
+    document.getElementById('startBtn').style.display='inline-block';
+    document.getElementById('advanceBtn').style.display='none';
+    document.getElementById('cashoutBtn').style.display='none';
+    document.getElementById('chicken').textContent='🐔';
+    document.getElementById('chicken').style.left='10px';
+    document.getElementById('progressBar').style.width='0%';
+    document.getElementById('currentMult').textContent='1.00x';
+    document.getElementById('nextMult').textContent='';
+    document.getElementById('resultBanner').className='result-banner';
+  },2000);
+}
+
+updateBal();
+</script></body></html>

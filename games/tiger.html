@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐯 Cassino Inova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#ffd54f;--gold-dark:#c8961e;--red:#e53935;--red-dark:#b71c1c;--bg:#0a0a12;--card:#14141e;--green:#4caf50;--text:#f5f5f5;--border:rgba(255,255,255,.08);--input-bg:#1a1a2e}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(ellipse at 50% 30%,#1a1a2e 0%,var(--bg) 70%);min-height:100vh;font-family:'Poppins',sans-serif;color:var(--text)}
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:linear-gradient(135deg,#1a0a00,#2d1810);border-bottom:2px solid var(--gold-dark);box-shadow:0 4px 20px rgba(200,150,30,.3)}
+.logo{font-family:'Cinzel',serif;font-size:clamp(1.2rem,3vw,1.6rem);font-weight:900;background:linear-gradient(135deg,var(--gold),#fff8e1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;display:flex;align-items:center;gap:8px}
+.user-box{display:flex;align-items:center;gap:12px}
+.balance-box{background:linear-gradient(135deg,rgba(255,213,79,.15),rgba(255,213,79,.05));border:1px solid var(--gold-dark);border-radius:12px;padding:8px 18px;display:flex;align-items:center;gap:10px}
+.balance-label{font-size:.75rem;opacity:.7;text-transform:uppercase;letter-spacing:1px}
+.balance-value{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold)}
+.user-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border-radius:10px;padding:8px 14px;border:1px solid rgba(255,255,255,.08)}
+.user-chip span{font-size:.82rem;font-weight:600;color:var(--gold)}
+.logout-btn{background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:4px 10px;color:rgba(255,255,255,.5);cursor:pointer;font-family:'Poppins';font-size:.72rem;transition:all .2s}
+.logout-btn:hover{color:var(--red);border-color:var(--red)}
+
+.main{max-width:1200px;margin:0 auto;padding:24px}
+.section-title{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin:32px 0 18px;display:flex;align-items:center;gap:10px}
+.section-title:first-child{margin-top:0}
+
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.game-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:all .25s ease;
+  position:relative;
+  text-decoration:none;
+  display:block;
+}
+.game-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(200,150,30,.15);border-color:var(--gold-dark)}
+.game-banner{
+  height:140px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:3.5rem;
+  position:relative;
+  overflow:hidden;
+}
+.game-banner::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(transparent,var(--card))}
+.game-info{padding:16px 18px}
+.game-name{font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:var(--text);margin-bottom:4px}
+.game-desc{font-size:.78rem;opacity:.5;line-height:1.4}
+.game-tag{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);color:var(--gold);font-size:.65rem;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;font-weight:600;z-index:2}
+
+.footer{text-align:center;padding:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:40px}
+.footer a{color:rgba(255,213,79,.4);text-decoration:none;font-size:.75rem;letter-spacing:1px;transition:color .2s}
+.footer a:hover{color:var(--gold)}
+
+@media(max-width:600px){
+  .header{flex-direction:column;gap:10px}
+  .games-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<script>
+const SESSION_KEY='tc_session';
+if(!localStorage.getItem(SESSION_KEY)){window.location.href='../login.html'}
+const currentUser=localStorage.getItem(SESSION_KEY);
+</script>
+
+<header class="header">
+  <div class="logo">🐯 Cassino Inova</div>
+  <div class="user-box">
+    <div class="balance-box"><div><div class="balance-label">Saldo</div><div class="balance-value" id="balance">—</div></div></div>
+    <div class="user-chip"><span>👤</span><span id="userDisplay"></span><button class="logout-btn" onclick="doLogout()">Sair</button></div>
+  </div>
+</header>
+
+<main class="main">
+  <h2 class="section-title">🔥 Populares</h2>
+  <div class="games-grid" id="popularGames"></div>
+
+  <h2 class="section-title">🎮 Todos os Jogos</h2>
+  <div class="games-grid" id="allGames"></div>
+</main>
+
+<footer class="footer">
+  <a href="https://cassinoinova.guibut" target="_blank" rel="noopener">🌐 cassinoinova.guibut</a>
+</footer>
+
+<script>
+const USERS_KEY='tc_users',SETTINGS_KEY='tc_settings';
+
+function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY))||{}}catch{return{}}}
+function getBalance(){const users=getUsers();return users[currentUser]?.balance||0}
+function fmt(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v)}
+
+function updateBalance(){document.getElementById('balance').textContent=fmt(getBalance())}
+function doLogout(){localStorage.removeItem('tc_session');window.location.href='../login.html'}
+
+const GAMES=[
+  {file:'tiger',emoji:'🐯',name:'Fortune Tiger',desc:'O clássico jogo do tigrinho! Gire e ganhe até 50x.',tag:'Popular',bg:'linear-gradient(135deg,#b71c1c,#d32f2f)',popular:true},
+  {file:'crash',emoji:'🚀',name:'Crash',desc:'Saque antes de explodir! Multiplicador infinito.',tag:'Ao Vivo',bg:'linear-gradient(135deg,#1a237e,#283593)',popular:true},
+  {file:'mines',emoji:'💣',name:'Mines',desc:'Encontre as estrelas, evite as bombas!',tag:'Popular',bg:'linear-gradient(135deg,#1b5e20,#2e7d32)',popular:true},
+  {file:'roleta',emoji:'🎡',name:'Roleta',desc:'Aposte em números, cores e pares.',tag:'Clássico',bg:'linear-gradient(135deg,#b71c1c,#880e4f)'},
+  {file:'blackjack',emoji:'🃏',name:'Blackjack',desc:'Chegue perto do 21 sem passar.',tag:'Cartas',bg:'linear-gradient(135deg,#1b5e20,#004d40)'},
+  {file:'plinko',emoji:'📈',name:'Plinko',desc:'Solte a bolinha e multiplique!',tag:'Arcade',bg:'linear-gradient(135deg,#4a148c,#7b1fa2)'},
+  {file:'dice',emoji:'🎲',name:'Dados',desc:'Aposte over ou under no resultado.',tag:'Rápido',bg:'linear-gradient(135deg,#bf360c,#e64a19)'},
+  {file:'coinflip',emoji:'🪙',name:'Coin Flip',desc:'Cara ou coroa? Dobrou ou perdeu!',tag:'Instantâneo',bg:'linear-gradient(135deg,#f57f17,#ff8f00)'},
+  {file:'chicken',emoji:'🐔',name:'Chicken Cross',desc:'Atravesse a pista sem ser atingido!',tag:'Skill',bg:'linear-gradient(135deg,#006064,#0097a7)'},
+];
+
+function renderGames(){
+  const pop=document.getElementById('popularGames');
+  const all=document.getElementById('allGames');
+  pop.innerHTML=''; all.innerHTML='';
+  GAMES.forEach(g=>{
+    const card=document.createElement('a');
+    card.className='game-card';
+    card.href=`games/${g.file}.html`;
+    card.innerHTML=`
+      <span class="game-tag">${g.tag}</span>
+      <div class="game-banner" style="background:${g.bg}">${g.emoji}</div>
+      <div class="game-info"><div class="game-name">${g.name}</div><div class="game-desc">${g.desc}</div></div>`;
+    (g.popular?pop:all).appendChild(card);
+  });
+}
+
+document.getElementById('userDisplay').textContent=currentUser;
+updateBalance();
+renderGames();
+</script>
+</body>
+</html>

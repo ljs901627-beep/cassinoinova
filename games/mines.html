@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>💣 Mines — Cassino Inova</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.mines-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:360px;margin:0 auto 16px}
+.mine-cell{aspect-ratio:1;background:linear-gradient(180deg,#2a2a3a,#1e1e30);border:1px solid var(--border);border-radius:12px;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;border:none}
+.mine-cell:hover:not(.revealed){background:rgba(255,213,79,.08);transform:scale(1.04)}
+.mine-cell.revealed{cursor:default}
+.mine-cell.gem{background:linear-gradient(180deg,#1b5e20,#2e7d32)}
+.mine-cell.bomb{background:linear-gradient(180deg,#b71c1c,#d32f2f)}
+.mines-controls{display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+.multiplier-display{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;color:var(--gold);margin-bottom:12px;text-align:center}
+.next-mult{font-size:.75rem;opacity:.5;margin-top:4px;text-align:center}
+</style></head><body>
+
+<header class="game-header">
+  <a class="logo" onclick="goHome()">← 🐯 Cassino Inova</a>
+  <div class="right"><div class="balance-pill" id="balancePill">—</div></div>
+</header>
+
+<div class="game-area" style="max-width:500px;">
+  <div class="bet-row">
+    <button class="bet-btn" onclick="adjustBet(-1)">−</button>
+    <span class="bet-display" id="betDisplay">R$ 10</span>
+    <button class="bet-btn" onclick="adjustBet(1)">+</button>
+  </div>
+
+  <div class="mines-controls">
+    <label style="font-size:.8rem;opacity:.6;">Bombas:</label>
+    <select id="bombCount" style="background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);">
+      <option value="3">3</option><option value="5">5</option><option value="10">10</option><option value="24">24 (Hardcore)</option>
+    </select>
+  </div>
+
+  <div class="mines-grid" id="minesGrid"></div>
+
+  <div class="multiplier-display" id="multDisplay">Multiplicador: <span id="currentMult">1.00x</span></div>
+  <div class="next-mult">Próximo clique: <span id="nextMult"></span></div>
+
+  <br><button class="action-btn" id="startBtn" onclick="startMines()">Iniciar 💣</button>
+  <button class="action-btn cashout-btn-mines" id="cashoutBtn" onclick="cashOut()" style="display:none;background:linear-gradient(135deg,var(--green),#66bb6a);border-color:var(--green);color:#000;">Saque!</button>
+  <div class="result-banner" id="resultBanner"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+let balance=getBalance(),bet=10,bombs=3,revealed=[],minePositions=[],active=false,gemsFound=0,totalCells=25;
+const betLevels=[5,10,25,50,100];
+function updateBal(){setBalance(balance);document.getElementById('balancePill').textContent=fmt(balance)}
+function adjustBet(d){const i=betLevels.indexOf(bet);bet=betLevels[Math.max(0,Math.min(betLevels.length-1,i+d))];document.getElementById('betDisplay').textContent=fmt(bet)}
+
+function calcMultiplier(gems,bombs){
+  if(gems===0)return 1;
+  let m=1;
+  for(let i=0;i<gems;i++){m*=(25-bombs-i)/(25-i)}
+  return Math.max(m*.97,.01);
+}
+
+function startMines(){
+  if(active)return;if(balance<bet){showToast('Saldo insuficiente!','error');return}
+  balance-=bet;updateBal();
+  bombs=parseInt(document.getElementById('bombCount').value);
+  minePositions=[];revealed=[];gemsFound=0;active=true;
+  const all=[...Array(25).keys()];
+  while(minePositions.length<bombs){const idx=Math.floor(Math.random()*all.length);minePositions.push(all.splice(idx,1)[0])}
+
+  buildGrid();
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('cashoutBtn').style.display='inline-block';
+  document.getElementById('resultBanner').className='result-banner';
+  updateMultDisplay();
+}
+
+function buildGrid(){
+  const grid=document.getElementById('minesGrid');grid.innerHTML='';
+  for(let i=0;i<25;i++){
+    const cell=document.createElement('button');
+    cell.className='mine-cell';cell.dataset.idx=i;
+    cell.onclick=()=>revealCell(i);
+    grid.appendChild(cell);
+  }
+}
+
+function revealCell(idx){
+  if(!active||revealed.includes(idx))return;
+  revealed.push(idx);
+  const cells=document.querySelectorAll('.mine-cell');
+  const isMine=minePositions.includes(idx);
+
+  if(isMine){
+    cells[idx].textContent='💥';cells[idx].classList.add('revealed','bomb');
+    beep(150,.4,'sawtooth',.15);
+    endGame(false);
+  }else{
+    gemsFound++;
+    cells[idx].textContent='💎';cells[idx].classList.add('revealed','gem');
+    beep(800+gemsFound*50,.1,'triangle',.08);
+    updateMultDisplay();
+    if(gemsFound===totalCells-bombs){endGame(true)}
+  }
+}
+
+function updateMultDisplay(){
+  const mult=calcMultiplier(gemsFound,bombs);
+  document.getElementById('currentMult').textContent=mult.toFixed(2)+'x';
+  const next=calcMultiplier(gemsFound+1,bombs);
+  document.getElementById('nextMult').textContent=next.toFixed(2)+'x';
+}
+
+function cashOut(){
+  if(!active||gemsFound===0)return;
+  active=false;
+  const mult=calcMultiplier(gemsFound,bombs);
+  const winnings=Math.floor(bet*mult);
+  balance+=winnings;setBalance(balance);
+  playWin(mult>3);
+  const banner=document.getElementById('resultBanner');
+  banner.className='result-banner result-win';
+  banner.textContent=`✅ ${gemsFound} 💎 — Ganhou ${fmt(winnings)} (${mult.toFixed(2)}x)!`;
+  resetBoard();
+}
+
+function endGame(wonAll){
+  active=false;
+  if(!wonAll){
+    playLose();
+    const banner=document.getElementById('resultBanner');
+    banner.className='result-banner result-lose';
+    banner.textContent=`💥 Você encontrou uma bomba! Perdeu ${fmt(bet)}`;
+  }else{
+    const mult=calcMultiplier(gemsFound,bombs);
+    const winnings=Math.floor(bet*mult);
+    balance+=winnings;setBalance(balance);
+    playWin(true);
+    const banner=document.getElementById('resultBanner');
+    banner.className='result-banner result-win';
+    banner.textContent=`🎉 PERFEITO! ${fmt(winnings)} (${mult.toFixed(0)}x)!`;
+  }
+  // Reveal all
+  document.querySelectorAll('.mine-cell').forEach((c,i)=>{
+    c.classList.add('revealed');
+    if(minePositions.includes(i)&&c.textContent!=='💥')c.textContent='💣';
+    else if(!minePositions.includes(i)&&c.textContent==='')c.textContent='💎';
+  });
+  resetBoard();
+}
+
+function resetBoard(){
+  setTimeout(()=>{
+    active=false;
+    document.getElementById('startBtn').style.display='inline-block';
+    document.getElementById('cashoutBtn').style.display='none';
+    document.getElementById('currentMult').textContent='1.00x';
+    document.getElementById('nextMult').textContent='';
+  },2000);
+}
+
+buildGrid();updateBal();
+</script></body></html>

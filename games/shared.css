@@ -1,0 +1,27 @@
+:root{--gold:#ffd54f;--gold-dark:#c8961e;--red:#e53935;--red-dark:#b71c1c;--bg:#0a0a12;--card:#14141e;--green:#4caf50;--text:#f5f5f5;--border:rgba(255,255,255,.08);--input-bg:#1a1a2e}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(ellipse at 50% 30%,#1a1a2e 0%,var(--bg) 70%);min-height:100vh;font-family:'Poppins',sans-serif;color:var(--text)}
+.game-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:linear-gradient(135deg,#1a0a00,#2d1810);border-bottom:2px solid var(--gold-dark)}
+.game-header .logo{font-family:'Cinzel',serif;font-weight:900;color:var(--gold);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none}
+.game-header .right{display:flex;gap:12px;align-items:center}
+.balance-pill{background:linear-gradient(135deg,rgba(255,213,79,.15),rgba(255,213,79,.05));border:1px solid var(--gold-dark);border-radius:10px;padding:6px 16px;font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--gold)}
+.back-btn{color:rgba(255,255,255,.5);text-decoration:none;font-size:.82rem;display:flex;align-items:center;gap:4px}.back-btn:hover{color:var(--gold)}
+
+.game-area{max-width:800px;margin:0 auto;padding:24px}
+.bet-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px}
+.bet-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--gold-dark);background:rgba(255,213,79,.1);color:var(--gold);font-size:1.1rem;cursor:pointer;font-family:'Poppins';font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.bet-btn:hover{background:rgba(255,213,79,.25)}
+.bet-display{font-family:'Cinzel',serif;font-size:1.2rem;font-weight:700;color:var(--gold);min-width:80px;text-align:center}
+.action-btn{padding:14px 40px;border-radius:14px;border:2px solid var(--gold);background:linear-gradient(135deg,var(--gold),#ffb300);font-family:'Cinzel',serif;font-size:1.1rem;font-weight:900;color:#b71c1c;cursor:pointer;letter-spacing:2px;transition:all .2s;text-transform:uppercase}
+.action-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 25px rgba(255,183,77,.35)}
+.action-btn:disabled{opacity:.5;cursor:not-allowed}
+
+.result-banner{text-align:center;padding:20px;border-radius:16px;margin-top:20px;font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;display:none}
+.result-win{display:block!important;background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.3);color:var(--green)}
+.result-lose{display:block!important;background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.25);color:var(--red)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:12px;font-size:.85rem;z-index:999;pointer-events:none;animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:none}}
+.toast-error{background:var(--red);color:#fff}
+.toast-success{background:var(--green);color:#fff}
+.toast-info{background:var(--gold-dark);color:#fff}

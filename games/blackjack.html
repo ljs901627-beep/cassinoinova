@@ -1,0 +1,148 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🃏 Blackjack — Cassino Inova</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.table-felt{background:radial-gradient(ellipse at center,#1b5e20 0%,#0d3d10 100%);border-radius:20px;padding:30px;border:4px solid var(--gold-dark);min-height:300px;position:relative}
+.dealer-area,.player-area{text-align:center;margin-bottom:20px}
+.area-label{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;opacity:.5;margin-bottom:8px}
+.cards{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:80px}
+.card{width:56px;height:80px;background:#fff;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:#212121;box-shadow:0 2px 8px rgba(0,0,0,.3);animation:dealCard .4s ease}
+.card.red{color:#c62828}
+.card.back{background:linear-gradient(135deg,#1a237e,#283593);color:transparent}
+@keyframes dealCard{from{opacity:0;transform:translateY(-16px) rotateY(90deg)}to{opacity:1;transform:none}}
+.score{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold);margin-top:8px}
+.actions-row{display:flex;gap:12px;justify-content:center;margin-top:16px}
+.action-btn.small{padding:10px 24px;font-size:.9rem}
+.btn-hit{border-color:var(--green);background:linear-gradient(135deg,var(--green),#66bb6a);color:#000}
+.btn-stand{border-color:var(--red);background:linear-gradient(135deg,var(--red),#ef5350);color:#fff}
+.btn-double{border-color:var(--gold-dark);background:linear-gradient(135deg,var(--gold-dark),#ffb300)}
+</style></head><body>
+
+<header class="game-header">
+  <a class="logo" onclick="goHome()">← 🐯 Cassino Inova</a>
+  <div class="right"><div class="balance-pill" id="balancePill">—</div></div>
+</header>
+
+<div class="game-area">
+  <div class="bet-row" id="betRow">
+    <button class="bet-btn" onclick="adjustBet(-1)">−</button>
+    <span class="bet-display" id="betDisplay">R$ 25</span>
+    <button class="bet-btn" onclick="adjustBet(1)">+</button>
+    <button class="action-btn" onclick="startGame()">Distribuir 🃏</button>
+  </div>
+
+  <div class="table-felt" id="tableFelt" style="display:none;">
+    <div class="dealer-area">
+      <div class="area-label">Dealer</div>
+      <div class="cards" id="dealerCards"></div>
+      <div class="score" id="dealerScore"></div>
+    </div>
+    <div style="text-align:center;color:rgba(255,255,255,.15);font-family:'Cinzel';font-size:1.5rem;margin:12px 0;">♠ ♥ ♦ ♣</div>
+    <div class="player-area">
+      <div class="area-label">Você</div>
+      <div class="cards" id="playerCards"></div>
+      <div class="score" id="playerScore"></div>
+    </div>
+  </div>
+
+  <div class="actions-row" id="actionRow" style="display:none;">
+    <button class="action-btn small btn-hit" onclick="hit()">Pedir Carta</button>
+    <button class="action-btn small btn-stand" onclick="stand()">Parar</button>
+    <button class="action-btn small btn-double" onclick="double()">Dobrar</button>
+  </div>
+
+  <div class="result-banner" id="resultBanner"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+let balance=getBalance(),bet=25,deck=[],playerHand=[],dealerHand=[],gameActive=false;
+const betLevels=[5,25,50,100,250];
+const SUITS=['♠','♥','♦','♣'],RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+function updateBal(){setBalance(balance);document.getElementById('balancePill').textContent=fmt(balance)}
+function adjustBet(d){const i=betLevels.indexOf(bet);bet=betLevels[Math.max(0,Math.min(betLevels.length-1,i+d))];document.getElementById('betDisplay').textContent=fmt(bet)}
+
+function newDeck(){deck=[];SUITS.forEach(s=>RANKS.forEach(r=>deck.push({rank:r,suit:s})));for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}}
+function draw(){return deck.pop()}
+function handValue(hand){let v=0,aces=0;hand.forEach(c=>{if(c.rank==='A'){v+=11;aces++}else if(['J','Q','K'].includes(c.rank))v+=10;else v+=parseInt(c.rank)});while(v>21&&aces>0){v-=10;aces--}return v}
+
+function renderCards(el,hand,revealAll=true){
+  el.innerHTML='';
+  hand.forEach((c,i)=>{
+    const d=document.createElement('div');
+    if(!revealAll&&i===0){d.className='card back';d.textContent='🂠'}
+    else{const isRed=['♥','♦'].includes(c.suit);d.className=`card ${isRed?'red':''}`;d.innerHTML=`<span>${c.rank}</span><span style="font-size:.8rem">${c.suit}</span>`}
+    el.appendChild(d);
+  });
+}
+
+function startGame(){
+  if(balance<bet){showToast('Saldo insuficiente!','error');return}
+  balance-=bet;updateBal();
+  newDeck();playerHand=[draw(),draw()];dealerHand=[draw(),draw()];
+  gameActive=true;
+  document.getElementById('betRow').style.display='none';
+  document.getElementById('tableFelt').style.display='block';
+  document.getElementById('actionRow').style.display='flex';
+  document.getElementById('resultBanner').className='result-banner';
+  renderCards(document.getElementById('playerCards'),playerHand);
+  renderCards(document.getElementById('dealerCards'),dealerHand,false);
+  document.getElementById('playerScore').textContent=handValue(playerHand);
+  document.getElementById('dealerScore').textContent=dealerHand[1].rank==='A'?'11+':'?';
+  beep(600,.1);
+
+  if(handValue(playerHand)===21){stand(true)}
+}
+
+function hit(){
+  playerHand.push(draw());
+  renderCards(document.getElementById('playerCards'),playerHand);
+  const score=handValue(playerHand);
+  document.getElementById('playerScore').textContent=score;
+  beep(500,.08);
+  if(score>21)endGame('lose');
+  if(score===21)setTimeout(()=>stand(),500);
+}
+
+function stand(natural=false){
+  gameActive=false;
+  document.getElementById('actionRow').style.display='none';
+  renderCards(document.getElementById('dealerCards'),dealerHand,true);
+  while(handValue(dealerHand)<17&&handValue(playerHand)<=21){dealerHand.push(draw())}
+  renderCards(document.getElementById('dealerCards'),dealerHand);
+  const ds=handValue(dealerHand),ps=handValue(playerHand);
+  document.getElementById('dealerScore').textContent=ds;
+  if(ps>21||ds>ps||(natural&&ps===21&&ds!==21)){endGame(natural&&ps===21?'blackjack':'lose')}
+  else if(ds===ps){endGame('push')}
+  else{endGame('win')}
+}
+
+function double(){
+  if(balance<bet)return;
+  balance-=bet;bet*=2;updateBal();
+  hit();if(handValue(playerHand)<=21)setTimeout(()=>stand(),400);
+}
+
+function endGame(result){
+  gameActive=false;
+  document.getElementById('actionRow').style.display='none';
+  const banner=document.getElementById('resultBanner');
+  let msg='';
+  if(result==='win'){balance+=bet*2;playWin();banner.className='result-banner result-win';msg=`🎉 Você ganhou ${fmt(bet*2)}!`}
+  else if(result==='blackjack'){balance+=Math.floor(bet*2.5);playWin(true);banner.className='result-banner result-win';msg=`🎰 BLACKJACK! Ganhou ${fmt(Math.floor(bet*2.5))}!`}
+  else if(result==='push'){balance+=bet;banner.className='result-banner';banner.style.color='#fff';msg='🤝 Empate! Aposta devolvida.'}
+  else{playLose();banner.className='result-banner result-lose';msg=`😔 Dealer ganhou.`}
+  banner.textContent=msg;setBalance(balance);updateBal();
+  setTimeout(()=>{
+    document.getElementById('resultBanner').className='result-banner';
+    document.getElementById('betRow').style.display='flex';
+    document.getElementById('tableFelt').style.display='none';
+    bet=betLevels.includes(bet)?bet:25;
+  },2500);
+}
+
+updateBal();
+</script></body></html>

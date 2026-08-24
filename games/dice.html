@@ -1,0 +1,118 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🎲 Dados — Cassino Inova</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.dice-display{font-size:6rem;text-align:center;margin:30px 0;padding:20px;background:var(--card);border-radius:20px;border:2px solid var(--border);min-height:140px;display:flex;align-items:center;justify-content:center}
+.dice-result{font-family:'Cinzel',serif;font-size:3rem;font-weight:900;color:var(--gold)}
+.slider-wrap{margin:20px auto;max-width:400px;text-align:center}
+.slider{width:100%;height:8px;-webkit-appearance:none;background:linear-gradient(90deg,var(--red) var(--slider-fill,50%),var(--green) var(--slider-fill,50%));border-radius:4px;outline:none;margin-top:16px}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 10px rgba(255,213,79,.5)}
+.target-label{display:flex;justify-content:space-between;font-size:.85rem;opacity:.6;margin-top:8px}
+.mode-btns{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
+.mode-btn{padding:8px 24px;border-radius:10px;border:1px solid var(--border);background:transparent;color:rgba(255,255,255,.5);cursor:pointer;font-family:'Poppins';font-weight:600}
+.mode-btn.active{background:var(--gold);color:#000;border-color:var(--gold)}
+.payout-info{text-align:center;margin-bottom:14px}
+</style></head><body>
+
+<header class="game-header">
+  <a class="logo" onclick="goHome()">← 🐯 Cassino Inova</a>
+  <div class="right"><div class="balance-pill" id="balancePill">—</div></div>
+</header>
+
+<div class="game-area" style="max-width:500px;">
+  <div class="bet-row">
+    <button class="bet-btn" onclick="adjustBet(-1)">−</button>
+    <span class="bet-display" id="betDisplay">R$ 10</span>
+    <button class="bet-btn" onclick="adjustBet(1)">+</button>
+  </div>
+
+  <div class="mode-btns">
+    <button class="mode-btn active" id="overBtn" onclick="setMode('over')">Over ▲</button>
+    <button class="mode-btn" id="underBtn" onclick="setMode('under')">Under ▼</button>
+  </div>
+
+  <div class="dice-display"><span class="dice-result" id="diceResult">?</span></div>
+
+  <div class="slider-wrap">
+    <input type="range" min="2" max="98" value="50" class="slider" id="targetSlider" oninput="updateTarget()">
+    <div class="target-label">
+      <span>2</span>
+      <strong style="color:var(--gold);" id="targetLabel">50</strong>
+      <span>100</span>
+    </div>
+  </div>
+
+  <div class="payout-info">
+    <span style="opacity:.5;font-size:.8rem;">Multiplicador:</span>
+    <span style="color:var(--green);font-family:'Cinzel';font-weight:700;" id="payoutMult">1.96x</span>
+    <span style="opacity:.5;font-size:.8rem;margin-left:12px;">Chance:</span>
+    <span style="opacity:.7;font-size:.85rem;" id="winChance">50%</span>
+  </div>
+
+  <br><button class="action-btn" id="rollBtn" onclick="rollDice()">Rolar 🎲</button>
+  <div class="result-banner" id="resultBanner"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+let balance=getBalance(),bet=10,target=50,mode='over';
+const betLevels=[5,10,25,50,100];
+function updateBal(){setBalance(balance);document.getElementById('balancePill').textContent=fmt(balance)}
+function adjustBet(d){const i=betLevels.indexOf(bet);bet=betLevels[Math.max(0,Math.min(betLevels.length-1,i+d))];document.getElementById('betDisplay').textContent=fmt(bet)}
+
+function setMode(m){
+  mode=m;
+  document.getElementById('overBtn').classList.toggle('active',m==='over');
+  document.getElementById('underBtn').classList.toggle('active',m==='under');
+  updateTarget();
+}
+
+function updateTarget(){
+  target=parseInt(document.getElementById('targetSlider').value);
+  document.getElementById('targetSlider').style.setProperty('--slider-fill',(mode==='over'?target:100-target)+'%');
+  document.getElementById('targetLabel').textContent=target;
+  const chance=mode==='over'?(100-target):target;
+  const mult=Math.floor((99/chance)*100)/100;
+  document.getElementById('payoutMult').textContent=mult.toFixed(2)+'x';
+  document.getElementById('winChance').textContent=chance+'%';
+}
+
+let rolling=false;
+async function rollDice(){
+  if(rolling)return;if(balance<bet){showToast('Saldo insuficiente!','error');return}
+  rolling=true;document.getElementById('rollBtn').disabled=true;
+  balance-=bet;updateBal();
+  document.getElementById('resultBanner').className='result-banner';
+
+  for(let i=0;i<15;i++){
+    document.getElementById('diceResult').textContent=Math.floor(Math.random()*100);
+    beep(Math.random()*800+200,.03,'sine',.03);
+    await new Promise(r=>setTimeout(r,40+i*15));
+  }
+
+  const result=Math.floor(Math.random()*(99-2+1))+2;
+  document.getElementById('diceResult').textContent=result;
+
+  const won=mode==='over'?result>target:result<target;
+  const chance=mode==='over'?(100-target):target;
+  const mult=Math.floor((99/chance)*100)/100;
+
+  if(won){
+    const winnings=Math.floor(bet*mult);
+    balance+=winnings;setBalance(balance);
+    playWin(mult>5);
+    document.getElementById('resultBanner').className='result-banner result-win';
+    document.getElementById('resultBanner').textContent=`🎉 ${result} — Ganhou ${fmt(winnings)} (${mult}x)!`;
+  }else{
+    playLose();
+    document.getElementById('resultBanner').className='result-banner result-lose';
+    document.getElementById('resultBanner').textContent=`${result} — Não foi essa vez!`;
+  }
+
+  updateBal();rolling=false;document.getElementById('rollBtn').disabled=false;
+}
+
+updateTarget();updateBal();
+</script></body></html>

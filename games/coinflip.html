@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🪙 Coin Flip — Cassino Inova</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.coin-wrap{display:flex;justify-content:center;margin:40px 0}
+.coin{width:160px;height:160px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:4rem;background:linear-gradient(135deg,#ffd54f,#ffb300);border:4px solid #c8961e;box-shadow:0 0 30px rgba(255,213,79,.3);transition:transform .1s}
+.coin.flipping{animation:flipCoin .12s linear infinite}
+@keyframes flipCoin{0%{transform:rotateY(0deg)}100%{transform:rotateY(360deg)}}
+.side-btns{display:flex;gap:16px;justify-content:center;margin-bottom:20px}
+.side-btn{padding:14px 32px;border-radius:14px;border:2px solid var(--border);background:var(--card);color:var(--text);font-family:'Poppins';font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.side-btn:hover{border-color:var(--gold)}
+.side-btn.selected{border-color:var(--gold)!important;background:rgba(255,213,79,.15)!important;color:var(--gold)!important}
+.payout-label{text-align:center;font-size:.85rem;opacity:.5;margin-bottom:14px}
+</style></head><body>
+
+<header class="game-header">
+  <a class="logo" onclick="goHome()">← 🐯 Cassino Inova</a>
+  <div class="right"><div class="balance-pill" id="balancePill">—</div></div>
+</header>
+
+<div class="game-area" style="max-width:450px;">
+  <div class="bet-row">
+    <button class="bet-btn" onclick="adjustBet(-1)">−</button>
+    <span class="bet-display" id="betDisplay">R$ 10</span>
+    <button class="bet-btn" onclick="adjustBet(1)">+</button>
+  </div>
+
+  <div class="side-btns">
+    <button class="side-btn selected" id="headsBtn" onclick="selectSide('heads')">👑 Cara</button>
+    <button class="side-btn" id="tailsBtn" onclick="selectSide('tails')">🦅 Coroa</button>
+  </div>
+
+  <p class="payout-label">Multiplicador: <strong style="color:var(--green)">1.96x</strong> | Chance: <strong>50%</strong></p>
+
+  <div class="coin-wrap"><div class="coin" id="coin">👑</div></div>
+
+  <br><button class="action-btn" id="flipBtn" onclick="doFlip()">Girar Moeda! 🪙</button>
+  <div class="result-banner" id="resultBanner"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+let balance=getBalance(),bet=10,selected='heads',flipping=false;
+const betLevels=[5,10,25,50,100];
+function updateBal(){setBalance(balance);document.getElementById('balancePill').textContent=fmt(balance)}
+function adjustBet(d){const i=betLevels.indexOf(bet);bet=betLevels[Math.max(0,Math.min(betLevels.length-1,i+d))];document.getElementById('betDisplay').textContent=fmt(bet)}
+
+function selectSide(s){
+  if(flipping)return;
+  selected=s;
+  document.getElementById('headsBtn').classList.toggle('selected',s==='heads');
+  document.getElementById('tailsBtn').classList.toggle('selected',s==='tails');
+}
+
+async function doFlip(){
+  if(flipping)return;if(balance<bet){showToast('Saldo insuficiente!','error');return}
+  flipping=true;document.getElementById('flipBtn').disabled=true;
+  balance-=bet;updateBal();
+  const coin=document.getElementById('coin');
+  coin.classList.add('flipping');
+  coin.textContent='';
+  beep(400,.05,'sine',.05);
+  document.getElementById('resultBanner').className='result-banner';
+
+  for(let i=0;i<20;i++){beep(Math.random()*600+200,.02,'sine',.02);await new Promise(r=>setTimeout(r,60))}
+
+  coin.classList.remove('flipping');
+  const result=Math.random()<.5?'heads':'tails';
+  const won=result===selected;
+
+  coin.textContent=result==='heads'?'👑':'🦅';
+  beep(800,.1,'triangle',.08);
+
+  const banner=document.getElementById('resultBanner');
+  if(won){
+    const winnings=Math.floor(bet*1.96);
+    balance+=winnings;setBalance(balance);
+    playWin();
+    banner.className='result-banner result-win';
+    banner.textContent=`🎉 ${result==='heads'?'Cara':'Coroa'}! Ganhou ${fmt(winnings)}!`;
+  }else{
+    playLose();
+    banner.className='result-banner result-lose';
+    banner.textContent=`${result==='heads'?'Cara':'Coroa'} — Não foi essa vez!`;
+  }
+
+  updateBal();flipping=false;document.getElementById('flipBtn').disabled=false;
+}
+
+updateBal();
+</script></body></html>
