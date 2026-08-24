@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐯 Login — Cassino Inova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #ffd54f;
+  --gold-dark: #c8961e;
+  --red: #e53935;
+  --bg: #0a0a12;
+  --card: #14141e;
+  --green: #4caf50;
+  --text: #f5f5f5;
+  --border: rgba(255,255,255,.08);
+  --input-bg: #1a1a2e;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, var(--bg) 70%);
+  min-height:100vh;
+  font-family:'Poppins',sans-serif;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.auth-card {
+  width:min(420px,100%);
+  background:var(--card);
+  border:1px solid rgba(255,213,79,.15);
+  border-radius:20px;
+  padding:40px 32px;
+  box-shadow:0 10px 50px rgba(0,0,0,.5), 0 0 40px rgba(200,150,30,.08);
+}
+
+.auth-logo {
+  text-align:center;
+  margin-bottom:32px;
+}
+
+.auth-logo .tiger-icon {
+  font-size:3rem;
+  display:block;
+  margin-bottom:8px;
+}
+
+.auth-logo h1 {
+  font-family:'Cinzel',serif;
+  font-size:1.4rem;
+  font-weight:900;
+  background:linear-gradient(135deg,var(--gold),#fff8e1);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:2px;
+}
+
+.auth-logo p {
+  font-size:.75rem;
+  opacity:.4;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-top:4px;
+}
+
+/* Tabs */
+.auth-tabs {
+  display:flex;
+  margin-bottom:24px;
+  border-radius:12px;
+  overflow:hidden;
+  background:var(--input-bg);
+  border:1px solid var(--border);
+}
+
+.auth-tab {
+  flex:1;
+  padding:12px;
+  border:none;
+  background:transparent;
+  color:rgba(255,255,255,.4);
+  font-family:'Poppins',sans-serif;
+  font-size:.85rem;
+  font-weight:500;
+  cursor:pointer;
+  transition:all .2s;
+}
+
+.auth-tab.active {
+  background:linear-gradient(135deg,var(--gold-dark),var(--gold));
+  color:#000;
+  font-weight:600;
+}
+
+/* Form */
+.auth-form { display:none; }
+.auth-form.active { display:block; animation:fadeForm .25s ease; }
+
+@keyframes fadeForm { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+.form-group {
+  margin-bottom:16px;
+}
+
+.form-group label {
+  display:block;
+  font-size:.78rem;
+  opacity:.6;
+  margin-bottom:6px;
+  font-weight:500;
+}
+
+.form-group input {
+  width:100%;
+  padding:12px 14px;
+  background:var(--input-bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  font-family:'Poppins',sans-serif;
+  font-size:.9rem;
+  outline:none;
+  transition:border-color .2s;
+}
+
+.form-group input:focus {
+  border-color:var(--gold-dark);
+  box-shadow:0 0 0 3px rgba(200,150,30,.1);
+}
+
+.form-group input::placeholder { color:rgba(255,255,255,.25); }
+
+.auth-btn {
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--gold-dark),var(--gold));
+  color:#000;
+  font-family:'Cinzel',serif;
+  font-size:1rem;
+  font-weight:700;
+  letter-spacing:2px;
+  cursor:pointer;
+  transition:all .2s;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+
+.auth-btn:hover { transform:translateY(-1px); box-shadow:0 5px 20px rgba(255,183,77,.3); }
+.auth-btn:active { transform:translateY(0); }
+
+.auth-error {
+  background:rgba(229,57,53,.12);
+  border:1px solid rgba(229,57,53,.3);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:.82rem;
+  color:#ff8a80;
+  margin-bottom:16px;
+  display:none;
+}
+
+.auth-error.show { display:block; animation:fadeForm .2s ease; }
+
+.auth-success {
+  background:rgba(76,175,80,.12);
+  border:1px solid rgba(76,175,80,.3);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:.82rem;
+  color:#a5d6a7;
+  margin-bottom:16px;
+  display:none;
+}
+
+.auth-success.show { display:block; animation:fadeForm .2s ease; }
+
+
+</style>
+</head>
+<body>
+
+<div class="auth-card">
+  <div class="auth-logo">
+    <span class="tiger-icon">🐯</span>
+    <h1>Cassino Inova</h1>
+    <p>Cassino Premium</p>
+  </div>
+
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchAuthTab('login',this)">Entrar</button>
+    <button class="auth-tab" onclick="switchAuthTab('register',this)">Criar Conta</button>
+  </div>
+
+  <div class="auth-error" id="authError"></div>
+  <div class="auth-success" id="authSuccess"></div>
+
+  <!-- Login Form -->
+  <form class="auth-form active" id="formLogin" onsubmit="return doLogin(event)">
+    <div class="form-group">
+      <label>Usuário</label>
+      <input type="text" id="loginUsername" placeholder="Digite seu usuário" required autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="loginPassword" placeholder="Digite sua senha" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="auth-btn">Entrar 🎰</button>
+  </form>
+
+  <!-- Register Form -->
+  <form class="auth-form" id="formRegister" onsubmit="return doRegister(event)">
+    <div class="form-group">
+      <label>Usuário</label>
+      <input type="text" id="regUsername" placeholder="Escolha um nome de usuário" required minlength="3" maxlength="20" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="regPassword" placeholder="Mínimo 4 caracteres" required minlength="4" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label>Confirmar Senha</label>
+      <input type="password" id="regPasswordConfirm" placeholder="Confirme sua senha" required autocomplete="new-password">
+    </div>
+    <button type="submit" class="auth-btn">Criar Conta ✨</button>
+  </form>
+
+</div>
+
+<script>
+const USERS_KEY = 'tc_users';
+const SESSION_KEY = 'tc_session';
+
+// If already logged in, redirect to game
+if (localStorage.getItem(SESSION_KEY)) {
+  window.location.href = 'index.html';
+}
+
+function getUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(USERS_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + 'tiger_salt_2024');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function switchAuthTab(type, btn) {
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`form${type.charAt(0).toUpperCase()+type.slice(1)}`).classList.add('active');
+  hideMessages();
+}
+
+function showError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('authSuccess').classList.remove('show');
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById('authSuccess');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('authError').classList.remove('show');
+}
+
+function hideMessages() {
+  document.getElementById('authError').classList.remove('show');
+  document.getElementById('authSuccess').classList.remove('show');
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  hideMessages();
+
+  const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+
+  if (!username || !password) {
+    showError('Preencha todos os campos.');
+    return false;
+  }
+
+  const users = getUsers();
+  if (!users[username]) {
+    showError('Usuário não encontrado.');
+    return false;
+  }
+
+  const hash = await hashPassword(password);
+  if (users[username].passwordHash !== hash) {
+    showError('Senha incorreta.');
+    return false;
+  }
+
+  users[username].lastLogin = Date.now();
+  saveUsers(users);
+  localStorage.setItem(SESSION_KEY, username);
+  window.location.href = 'index.html';
+  return false;
+}
+
+async function doRegister(e) {
+  e.preventDefault();
+  hideMessages();
+
+  const username = document.getElementById('regUsername').value.trim().toLowerCase();
+  const password = document.getElementById('regPassword').value;
+  const confirm = document.getElementById('regPasswordConfirm').value;
+
+  if (!username || !password) {
+    showError('Preencha todos os campos.');
+    return false;
+  }
+
+  if (username.length < 3) {
+    showError('Nome de usuário deve ter no mínimo 3 caracteres.');
+    return false;
+  }
+
+  if (password.length < 4) {
+    showError('Senha deve ter no mínimo 4 caracteres.');
+    return false;
+  }
+
+  if (password !== confirm) {
+    showError('As senhas não coincidem.');
+    return false;
+  }
+
+  const users = getUsers();
+  if (users[username]) {
+    showError('Este nome de usuário já está em uso.');
+    return false;
+  }
+
+  const hash = await hashPassword(password);
+  users[username] = {
+    passwordHash: hash,
+    balance: 0,
+    betIndex: 1,
+    betLevels: [5, 10, 25, 50, 100, 250, 500],
+    stats: { totalSpins:0, totalWagered:0, totalWon:0, winsCount:0, lossesCount:0 },
+    history: [],
+    createdAt: Date.now(),
+    lastLogin: Date.now()
+  };
+  saveUsers(users);
+
+  showSuccess('Conta criada com sucesso! Redirecionando...');
+  setTimeout(() => {
+    localStorage.setItem(SESSION_KEY, username);
+    window.location.href = 'index.html';
+  }, 1200);
+
+  return false;
+}
+</script>
+
+<footer style="text-align:center;padding:16px;position:fixed;bottom:0;left:0;right:0;">
+  <a href="https://cassinoinova.guibut" target="_blank" rel="noopener" style="color:rgba(255,213,79,.3);text-decoration:none;font-size:.72rem;letter-spacing:1px;transition:color .2s;" onmouseover="this.style.color='#ffd54f'" onmouseout="this.style.color='rgba(255,213,79,.3)'">🌐 cassinoinova.guibut</a>
+</footer>
+</body>
+</html>

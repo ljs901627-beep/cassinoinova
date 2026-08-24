@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚙️ Admin — Cassino Inova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#ffd54f;--gold-dark:#c8961e;--red:#e53935;--bg:#0a0a12;--card:#14141e;--green:#4caf50;--text:#f5f5f5;--border:rgba(255,255,255,.08);--input-bg:#1a1a2e}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);min-height:100vh;font-family:'Poppins',sans-serif;color:var(--text)}
+.admin-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:linear-gradient(135deg,#1a1a2e,#14141e);border-bottom:2px solid var(--gold-dark)}
+.admin-logo{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:900;color:var(--gold);display:flex;align-items:center;gap:8px}.back-link{color:rgba(255,255,255,.6);text-decoration:none;font-size:.85rem;transition:color .2s;display:flex;align-items:center;gap:6px}.back-link:hover{color:var(--gold)}
+.admin-main{max-width:1200px;margin:0 auto;padding:24px}
+.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border)}.tab-btn{padding:10px 20px;border:none;background:transparent;color:rgba(255,255,255,.5);font-family:'Poppins';font-size:.85rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-weight:500}.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}.tab-btn:hover{color:var(--gold)}
+.tab-content{display:none}.tab-content.active{display:block;animation:fadeTab .3s ease}@keyframes fadeTab{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:4px}.stat-label{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;opacity:.5;font-weight:500}.stat-value{font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--gold)}.stat-value.green{color:var(--green)}.stat-value.red{color:var(--red)}
+.section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:16px}.section h3{font-family:'Cinzel',serif;font-size:1rem;color:var(--gold);margin-bottom:16px;letter-spacing:.5px}
+.form-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.form-row label{font-size:.8rem;opacity:.7;min-width:100px}
+input[type=number],input[type=text],select{background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Poppins';font-size:.85rem;outline:none;transition:border-color .2s}input:focus,select:focus{border-color:var(--gold-dark)}input[type=number]{width:110px}
+.btn{padding:8px 18px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-family:'Poppins';font-size:.82rem;font-weight:500;transition:all .2s}.btn-gold{background:linear-gradient(135deg,var(--gold),#ffb300);color:#000;border-color:var(--gold-dark)}.btn-gold:hover{transform:translateY(-1px);box-shadow:0 3px 12px rgba(255,183,77,.35)}.btn-green{background:rgba(76,175,80,.15);color:var(--green);border-color:rgba(76,175,80,.3)}.btn-green:hover{background:rgba(76,175,80,.25)}.btn-red{background:rgba(229,57,53,.12);color:var(--red);border-color:rgba(229,57,53,.25)}.btn-red:hover{background:rgba(229,57,53,.22)}
+.btn-sm{padding:5px 12px;font-size:.75rem}
+table{width:100%;border-collapse:collapse}th{text-align:left;padding:8px 10px;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;opacity:.5;border-bottom:1px solid var(--border);font-weight:500}td{padding:10px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.85rem;vertical-align:middle}tr:last-child td{border-bottom:none}
+.sym-char{font-size:1.5rem;text-align:center}.sym-input{width:70px!important;text-align:center}
+.pos{color:var(--green);font-weight:600}.neg{color:var(--red);font-weight:600}
+.user-row:hover{background:rgba(255,213,79,.04)}
+.selected-user{background:rgba(255,213,79,.08)!important;border-left:3px solid var(--gold)}
+.rtp-bar-wrap{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-top:6px}.rtp-bar{height:100%;border-radius:4px;transition:width .5s ease}
+.toast-admin{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:.85rem;z-index:999;animation:slideIn .3s ease;pointer-events:none}.toast-success{background:var(--green);color:#fff}.toast-error{background:var(--red);color:#fff}.toast-info{background:var(--gold-dark);color:#fff}@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.danger-zone{border:1px solid rgba(229,57,53,.25)!important}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}.badge-online{background:rgba(76,175,80,.15);color:var(--green)}.badge-offline{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4)}
+</style>
+</head>
+<body>
+<header class="admin-header">
+  <div class="admin-logo">⚙️ Painel Admin — Cassino Inova</div>
+  <a href="login.html" class="back-link">← Tela de Login</a>
+</header>
+<main class="admin-main">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('users',this)">👥 Usuários</button>
+    <button class="tab-btn" onclick="switchTab('symbols',this)">🎰 Símbolos & RTP</button>
+    <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ Configurações</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card"><span class="stat-label">Total Usuários</span><span class="stat-value" id="dUsers">—</span></div>
+      <div class="stat-card"><span class="stat-label">Total Giros</span><span class="stat-value" id="dSpins">—</span></div>
+      <div class="stat-card"><span class="stat-label">Total Apostado</span><span class="stat-value" id="dWagered">—</span></div>
+      <div class="stat-card"><span class="stat-label">Total Pago</span><span class="stat-value green" id="dPaid">—</span></div>
+      <div class="stat-card"><span class="stat-label">Receita Líquida</span><span class="stat-value" id="dRevenue">—</span></div>
+      <div class="stat-card"><span class="stat-label">RTP Global</span><span class="stat-value" id="dRtp">—%</span><div class="rtp-bar-wrap"><div class="rtp-bar" id="dRtpBar"></div></div></div>
+      <div class="stat-card"><span class="stat-label">Saldos Totais</span><span class="stat-value" id="dBalances">—</span></div>
+      <div class="stat-card"><span class="stat-label">Taxa de Vitória</span><span class="stat-value" id="dWinRate">—%</span></div>
+    </div>
+    <div class="section">
+      <h3>🏆 Top Jogadores (por saldo)</h3>
+      <table><thead><tr><th>#</th><th>Usuário</th><th>Saldo</th><th>Giros</th><th>Vitórias</th></tr></thead><tbody id="topPlayersBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Users -->
+  <div class="tab-content" id="tab-users">
+    <div class="section">
+      <h3>👥 Gerenciar Usuários</h3>
+      <p style="font-size:.78rem;opacity:.5;margin-bottom:14px;">Clique em um usuário para selecioná-lo e gerenciar seu saldo.</p>
+      <table><thead><tr><th>Status</th><th>Usuário</th><th>Saldo</th><th>Giros</th><th>Criado em</th><th>Ações</th></tr></thead><tbody id="usersTableBody"></tbody></table>
+    </div>
+    <div class="section" id="userManageSection" style="display:none;">
+      <h3 id="manageTitle">👤 —</h3>
+      <div style="margin-bottom:14px;"><strong style="color:var(--gold);font-size:1.1rem;" id="manageBalance">—</strong></div>
+      <div class="form-row"><label>Definir saldo:</label><input type="number" id="mNewBalance" placeholder="Ex: 5000" min="0"><button class="btn btn-gold btn-sm" onclick="setUserBalance()">✓ Definir</button></div>
+      <div class="form-row"><label>Adicionar:</label><input type="number" id="mAddBalance" placeholder="Ex: 500" min="0"><button class="btn btn-green btn-sm" onclick="addUserBalance()">＋ Adicionar</button></div>
+      <div class="form-row"><label>Remover:</label><input type="number" id="mRemoveBalance" placeholder="Ex: 100" min="0"><button class="btn btn-red btn-sm" onclick="removeUserBalance()">－ Remover</button></div>
+      <br><button class="btn btn-red btn-sm" onclick="deleteUser()">🗑 Deletar Usuário</button>
+    </div>
+  </div>
+
+  <!-- Symbols -->
+  <div class="tab-content" id="tab-symbols">
+    <div class="section">
+      <h3>🎰 Configuração Global de Símbolos</h3>
+      <p style="font-size:.78rem;opacity:.5;margin-bottom:14px;">Estas configurações se aplicam a todos os jogadores. Peso maior = aparece mais. Multiplicador maior = paga mais.</p>
+      <table><thead><tr><th>Símbolo</th><th>Nome</th><th>Peso</th><th>Multiplicador</th><th>Prob.</th></tr></thead><tbody id="symbolsTbody"></tbody></table>
+      <br><button class="btn btn-gold btn-sm" onclick="saveSymbols()">💾 Salvar Símbolos</button>
+      <button class="btn btn-sm" style="background:transparent;color:rgba(255,255,255,.5);" onclick="resetSymbols()">↺ Restaurar Padrão</button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="tab-content" id="tab-settings">
+    <div class="section danger-zone">
+      <h3 style="color:var(--red);">⚠️ Zona de Perigo</h3>
+      <p style="font-size:.8rem;opacity:.5;margin-bottom:14px;">Ações irreversíveis. Use com cuidado.</p>
+      <div class="form-row">
+        <button class="btn btn-red" onclick="resetAllStats()">📊 Resetar Estatísticas (Todos)</button>
+        <button class="btn btn-red" onclick="resetBalances()">💰 Resetar Saldos (R$1000)</button>
+        <button class="btn btn-red" onclick="wipeAll()">💥 Deletar Todos os Dados</button>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+const USERS_KEY='tc_users',SETTINGS_KEY='tc_settings';
+
+function getDefaultSymbols(){return[{char:'🐯',name:'Tigre',weight:2,mult:50},{char:'💎',name:'Diamante',weight:4,mult:20},{char:'🪙',name:'Ouro',weight:6,mult:15},{char:'❤️',name:'Coração',weight:8,mult:10},{char:'🔔',name:'Sino',weight:10,mult:8},{char:'🍀',name:'Sorte',weight:12,mult:5},{char:'🀄',name:'Mahjong',weight:14,mult:3}]}
+function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY))||{}}catch{return{}}}
+function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
+function getSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY))||{symbols:getDefaultSymbols()}}catch{return{symbols:getDefaultSymbols()}}}
+function saveSettings(s){localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}
+function fmt(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v)}
+let selectedUser=null;
+
+function switchTab(id,btn){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById(`tab-${id}`).classList.add('active');btn.classList.add('active')}
+
+function refresh(){renderDashboard();renderUsers();renderSymbols()}
+
+// ===== Dashboard =====
+function renderDashboard(){
+  const users=getUsers();const usernames=Object.keys(users);
+  let totalSpins=0,totalWagered=0,totalWon=0,totalWins=0,totalLosses=0,totalBalances=0;
+  usernames.forEach(u=>{const s=users[u].stats||{};totalSpins+=s.totalSpins||0;totalWagered+=s.totalWagered||0;totalWon+=s.totalWon||0;totalWins+=s.winsCount||0;totalLosses+=s.lossesCount||0;totalBalances+=users[u].balance||0});
+  const revenue=totalWagered-totalWon,rtp=totalWagered>0?(totalWon/totalWagered*100):0,winRate=(totalWins+totalLosses)>0?(totalWins/(totalWins+totalLosses)*100):0;
+  document.getElementById('dUsers').textContent=usernames.length;
+  document.getElementById('dSpins').textContent=totalSpins.toLocaleString('pt-BR');
+  document.getElementById('dWagered').textContent=fmt(totalWagered);
+  document.getElementById('dPaid').textContent=fmt(totalWon);
+  const revEl=document.getElementById('dRevenue');revEl.textContent=revenue>=0?'+'+fmt(revenue):'-'+fmt(Math.abs(revenue));revEl.className=`stat-value ${revenue>=0?'':'red'}`;
+  document.getElementById('dRtp').textContent=rtp.toFixed(1)+'%';
+  const bar=document.getElementById('dRtpBar');bar.style.width=Math.min(rtp,100)+'%';bar.style.background=rtp>100?'var(--red)':rtp>90?'var(--green)':'var(--gold)';
+  document.getElementById('dBalances').textContent=fmt(totalBalances);
+  document.getElementById('dWinRate').textContent=winRate.toFixed(1)+'%';
+  // Top players
+  const sorted=[...usernames].sort((a,b)=>users[b].balance-users[a].balance).slice(0,5);
+  const tbody=document.getElementById('topPlayersBody');tbody.innerHTML='';
+  sorted.forEach((u,i)=>{const usr=users[u];const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td>${u}</td><td style="color:var(--gold);font-weight:600;">${fmt(usr.balance)}</td><td>${usr.stats?.totalSpins||0}</td><td class="pos">${usr.stats?.winsCount||0}</td>`;tbody.appendChild(tr)});
+}
+
+// ===== Users =====
+function renderUsers(){
+  const users=getUsers();const tbody=document.getElementById('usersTableBody');tbody.innerHTML='';
+  Object.keys(users).sort().forEach(u=>{
+    const usr=users[u];const online=(Date.now()-(usr.lastLogin||0))<300000;
+    const tr=document.createElement('tr');tr.className='user-row'+(selectedUser===u?' selected-user':'');
+    tr.innerHTML=`<td><span class="badge ${online?'badge-online':'badge-offline'}">${online?'● Online':'○ Offline'}</span></td><td style="font-weight:600;">${u}</td><td style="color:var(--gold);">${fmt(usr.balance)}</td><td>${usr.stats?.totalSpins||0}</td><td style="opacity:.5;font-size:.78rem;">${new Date(usr.createdAt).toLocaleDateString('pt-BR')}</td><td><button class="btn btn-gold btn-sm" onclick="selectUser('${u}')">Gerenciar</button></td>`;
+    tbody.appendChild(tr);
+  });
+  if(!Object.keys(users).length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;opacity:.4;padding:20px;">Nenhum usuário registrado.</td></tr>'}
+}
+
+function selectUser(username){selectedUser=username;const users=getUsers();const u=users[username];
+  document.getElementById('userManageSection').style.display='block';
+  document.getElementById('manageTitle').textContent='👤 '+username;
+  document.getElementById('manageBalance').textContent=fmt(u.balance);
+  renderUsers();
+}
+
+function setUserBalance(){if(!selectedUser)return;const val=parseFloat(document.getElementById('mNewBalance').value);if(isNaN(val)||val<0){showToast('Valor inválido.','error');return}
+  const users=getUsers();users[selectedUser].balance=val;saveUsers(users);showToast(`Saldo de ${selectedUser} definido para ${fmt(val)}.`,'success');selectUser(selectedUser);renderDashboard();renderUsers()}
+
+function addUserBalance(){if(!selectedUser)return;const val=parseFloat(document.getElementById('mAddBalance').value);if(isNaN(val)||val<=0){showToast('Valor inválido.','error');return}
+  const users=getUsers();users[selectedUser].balance+=val;saveUsers(users);showToast(`+${fmt(val)} adicionados a ${selectedUser}.`,'success');selectUser(selectedUser);renderDashboard();renderUsers()}
+
+function removeUserBalance(){if(!selectedUser)return;const val=parseFloat(document.getElementById('mRemoveBalance').value);if(isNaN(val)||val<=0){showToast('Valor inválido.','error');return}
+  const users=getUsers();users[selectedUser].balance=Math.max(0,users[selectedUser].balance-val);saveUsers(users);showToast(`-${fmt(val)} removidos de ${selectedUser}.`,'success');selectUser(selectedUser);renderDashboard();renderUsers()}
+
+function deleteUser(){if(!selectedUser)return;if(!confirm(`Deletar usuário "${selectedUser}" permanentemente?`))return;
+  const users=getUsers();delete users[selectedUser];saveUsers(users);showToast(`Usuário "${selectedUser}" deletado.`,'info');selectedUser=null;document.getElementById('userManageSection').style.display='none';refresh()}
+
+// ===== Symbols =====
+function renderSymbols(){
+  const settings=getSettings();const symbols=settings.symbols;const totalWeight=symbols.reduce((s,x)=>s+x.weight,0);
+  const tbody=document.getElementById('symbolsTbody');tbody.innerHTML='';
+  symbols.forEach((sym,i)=>{const prob=((sym.weight/totalWeight)*100).toFixed(1);const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="sym-char">${sym.char}</td><td>${sym.name}</td><td><input type="number" class="sym-input" data-sym="${i}" data-field="weight" value="${sym.weight}" min="1"></td><td><input type="number" class="sym-input" data-sym="${i}" data-field="mult" value="${sym.mult}" min="1"></td><td style="opacity:.6;">${prob}%</td>`;tbody.appendChild(tr)});
+}
+
+function saveSymbols(){const inputs=document.querySelectorAll('.sym-input');const settings=getSettings();const symbols=settings.symbols;
+  inputs.forEach(inp=>{const idx=parseInt(inp.dataset.sym);const field=inp.dataset.field;symbols[idx][field]=parseInt(inp.value)||1});
+  saveSettings(settings);showToast('Símbolos salvos! Aplicado a todos os jogadores.','success');renderSymbols()}
+
+function resetSymbols(){const settings=getSettings();settings.symbols=getDefaultSymbols();saveSettings(settings);showToast('Símbolos restaurados ao padrão.','info');renderSymbols()}
+
+// ===== Settings =====
+function resetAllStats(){if(!confirm('Resetar estatísticas de TODOS os usuários?'))return;
+  const users=getUsers();Object.values(users).forEach(u=>{u.stats={totalSpins:0,totalWagered:0,totalWon:0,winsCount:0,lossesCount:0};u.history=[]});saveUsers(users);showToast('Estatísticas resetadas para todos.','info');refresh()}
+
+function resetBalances(){if(!confirm('Resetar saldos de TODOS os usuários para R$1.000?'))return;
+  const users=getUsers();Object.values(users).forEach(u=>{u.balance=0});saveUsers(users);showToast('Saldos resetados para R$1.000.','info');refresh()}
+
+function wipeAll(){if(!confirm('ATENÇÃO: Isso deletará TODOS os usuários e configurações. Continuar?'))return;
+  localStorage.removeItem(USERS_KEY);localStorage.removeItem(SETTINGS_KEY);localStorage.removeItem('tc_session');showToast('Todos os dados foram deletados.','info');setTimeout(()=>location.reload(),800)}
+
+function showToast(msg,type){const existing=document.querySelector('.toast-admin');if(existing)existing.remove();const t=document.createElement('div');t.className=`toast-admin toast-${type}`;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000)}
+
+setInterval(()=>{if(document.getElementById('tab-dashboard').classList.contains('active'))renderDashboard()},5000);
+refresh();
+</script>
+
+<footer style="text-align:center;padding:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:20px;">
+  <a href="https://cassinoinova.guibut" target="_blank" rel="noopener" style="color:rgba(255,213,79,.4);text-decoration:none;font-size:.75rem;letter-spacing:1px;transition:color .2s;" onmouseover="this.style.color='#ffd54f'" onmouseout="this.style.color='rgba(255,213,79,.4)'">🌐 cassinoinova.guibut</a>
+</footer>
+</body>
+</html>
